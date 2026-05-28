@@ -1,0 +1,13 @@
+import { useState } from 'react';
+import { Bot, Send } from 'lucide-react';
+import { wait } from '../../lib/utils';
+
+type Msg = { from:'bot'|'user'; text:string };
+const suggestions = ['¿Cuánto puedo gastar hoy?', '¿Dónde estoy gastando más?', 'Ayúdame a ahorrar más', '¿Cómo voy con mis metas?'];
+export default function ChatScreen(){
+  const [messages,setMessages]=useState<Msg[]>([{from:'bot',text:'Hola, soy tu coach financiero. Puedo ayudarte a revisar tus gastos, metas y hábitos.'}]);
+  const [text,setText]=useState(''); const [typing,setTyping]=useState(false);
+  const reply = (q:string) => q.toLowerCase().includes('gastar') ? 'Hoy puedes gastar alrededor de S/ 27 sin salirte de tu presupuesto diario. Prioriza transporte y comida.' : q.toLowerCase().includes('más') ? 'Tu mayor concentración está en comida y compras pequeñas. Un límite diario para cafés puede ayudarte bastante.' : q.toLowerCase().includes('ahorrar') ? 'Prueba separar tu ahorro apenas recibas ingresos. Con 20% mensual tu meta principal avanza de forma saludable.' : 'Vas bien: tu meta principal supera el 50% y tu presupuesto mensual aún está bajo control.';
+  async function send(value=text){ if(!value.trim())return; setMessages(m=>[...m,{from:'user',text:value}]); setText(''); setTyping(true); await wait(550); setMessages(m=>[...m,{from:'bot',text:reply(value)}]); setTyping(false); }
+  return <div className="flex h-full flex-col px-5 pb-28 pt-8 fade-in"><header className="card flex items-center gap-3 rounded-[2rem] p-4"><span className="grid h-11 w-11 place-items-center rounded-2xl gradient-btn"><Bot/></span><div><h1 className="font-black">Coach financiero</h1><p className="text-xs text-[var(--success)]">En línea · respuestas simuladas</p></div></header><div className="app-scroll flex-1 overflow-y-auto py-4"><div className="space-y-3">{messages.map((m,i)=><div key={i} className={`flex ${m.from==='user'?'justify-end':'justify-start'}`}><p className={`max-w-[82%] rounded-3xl px-4 py-3 text-sm ${m.from==='user'?'gradient-btn':'card'}`}>{m.text}</p></div>)}{typing && <p className="card inline-block rounded-3xl px-4 py-3 text-sm">Escribiendo...</p>}</div><div className="mt-4 flex flex-wrap gap-2">{suggestions.map(s=><button key={s} onClick={()=>send(s)} className="tap rounded-full px-3 py-2 text-xs soft-btn">{s}</button>)}</div></div><form onSubmit={e=>{e.preventDefault();send();}} className="flex gap-2"><input value={text} onChange={e=>setText(e.target.value)} placeholder="Escribe tu consulta..." className="min-w-0 flex-1 rounded-2xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"/><button className="tap grid h-12 w-12 place-items-center rounded-2xl gradient-btn"><Send size={18}/></button></form></div>
+}

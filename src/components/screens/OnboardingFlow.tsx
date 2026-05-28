@@ -1,0 +1,23 @@
+import { useState } from 'react';
+import type { Currency } from '../../lib/utils';
+import { money } from '../../lib/utils';
+
+type Settings = { useType: string; income: number; currency: Currency; savePercent: number; initialGoal: string };
+type Props = { name: string; onFinish: (settings: Settings) => void };
+const currencies: { label: string; value: Currency }[] = [{ label: 'S/ Sol peruano', value: 'S/' }, { label: '$ Dólar estadounidense', value: '$' }, { label: '€ Euro', value: '€' }];
+export default function OnboardingFlow({ name, onFinish }: Props) {
+  const [step, setStep] = useState(0);
+  const [settings, setSettings] = useState<Settings>({ useType: 'ambos', income: 2400, currency: 'S/', savePercent: 20, initialGoal: 'Fondo de emergencia' });
+  const next = () => step < 4 ? setStep(step+1) : onFinish(settings);
+  return <div className="h-full app-scroll overflow-y-auto px-6 py-8 fade-in">
+    <div className="mb-6 flex gap-2">{[0,1,2,3,4].map(i=><span key={i} className="h-2 flex-1 rounded-full" style={{background:i<=step?'var(--primary)':'color-mix(in srgb,var(--muted) 20%,transparent)'}} />)}</div>
+    {step===0 && <Panel title={`Hola, ${name} 👋`} text="Smart Budget te ayuda a controlar gastos, ahorrar por metas y entender tus hábitos sin complicarte." emoji="💸" />}
+    {step===1 && <section className="card rounded-[2rem] p-5"><h2 className="text-2xl font-black">¿Cómo la usarás?</h2><p className="mt-2 text-sm text-[var(--muted)]">Puedes cambiarlo después.</p><div className="mt-5 grid gap-3">{['personal','grupal','ambos'].map(t=><button key={t} onClick={()=>setSettings({...settings,useType:t})} className={`tap rounded-2xl border p-4 text-left capitalize ${settings.useType===t?'gradient-btn':'border-[var(--border)]'}`}>{t === 'ambos' ? 'Ambos: personal y grupal' : t}</button>)}</div></section>}
+    {step===2 && <section className="card rounded-[2rem] p-5"><h2 className="text-2xl font-black">Ingreso y moneda</h2><label className="mt-5 block text-sm font-semibold">Ingreso mensual aproximado<input type="number" value={settings.income} onChange={e=>setSettings({...settings,income:Number(e.target.value)})} className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none" /></label><div className="mt-5 grid gap-2">{currencies.map(c=><button key={c.value} onClick={()=>setSettings({...settings,currency:c.value})} className={`tap rounded-2xl border p-3 text-left ${settings.currency===c.value?'gradient-btn':'border-[var(--border)]'}`}>{c.label}</button>)}</div></section>}
+    {step===3 && <section className="card rounded-[2rem] p-5"><h2 className="text-2xl font-black">Ahorro inicial</h2><label className="mt-5 block text-sm font-semibold">Porcentaje deseado: {settings.savePercent}%<input type="range" min="5" max="50" value={settings.savePercent} onChange={e=>setSettings({...settings,savePercent:Number(e.target.value)})} className="mt-4 w-full" /></label><label className="mt-5 block text-sm font-semibold">Meta inicial<input value={settings.initialGoal} onChange={e=>setSettings({...settings,initialGoal:e.target.value})} className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none" /></label></section>}
+    {step===4 && <section className="card rounded-[2rem] p-5"><h2 className="text-2xl font-black">Resumen listo ✨</h2><div className="mt-5 space-y-3 text-sm"><Row a="Uso" b={settings.useType}/><Row a="Ingreso" b={money(settings.income, settings.currency)}/><Row a="Ahorro sugerido" b={`${settings.savePercent}% mensual`}/><Row a="Meta" b={settings.initialGoal}/></div><p className="mt-5 rounded-2xl bg-[color-mix(in_srgb,var(--success)_12%,transparent)] p-4 text-sm">Vas a empezar con una configuración clara, editable y fácil de entender.</p></section>}
+    <div className="mt-6 flex gap-3"><button onClick={()=>setStep(Math.max(0,step-1))} className="tap flex-1 rounded-2xl py-3 soft-btn">Atrás</button><button onClick={next} className="tap flex-1 rounded-2xl py-3 font-bold gradient-btn">{step===4?'Empezar':'Siguiente'}</button></div>
+  </div>;
+}
+function Panel({title,text,emoji}:{title:string;text:string;emoji:string}){return <section className="card rounded-[2rem] p-6 text-center"><div className="text-6xl">{emoji}</div><h2 className="mt-5 text-3xl font-black">{title}</h2><p className="mt-3 text-sm leading-6 text-[var(--muted)]">{text}</p></section>}
+function Row({a,b}:{a:string;b:string|number}){return <div className="flex justify-between rounded-2xl border border-[var(--border)] p-3"><span className="text-[var(--muted)]">{a}</span><strong className="capitalize">{b}</strong></div>}

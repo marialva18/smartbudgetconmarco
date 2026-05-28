@@ -1,0 +1,10 @@
+import { monthlyEvolution, type Expense } from '../../lib/mockData';
+import type { Currency } from '../../lib/utils';
+import { money } from '../../lib/utils';
+
+type Props = { expenses: Expense[]; currency: Currency };
+export default function InsightsScreen({ expenses, currency }: Props){
+  const byCat = expenses.reduce<Record<string,number>>((acc,e)=>{acc[e.category]=(acc[e.category]||0)+e.amount; return acc},{});
+  const max = Math.max(...Object.values(byCat),1);
+  return <div className="h-full app-scroll overflow-y-auto px-5 pb-28 pt-8 fade-in"><h1 className="text-2xl font-black">Insights financieros</h1><p className="mt-2 text-sm text-[var(--muted)]">Recomendaciones simples basadas en tus hábitos.</p><div className="mt-5 grid gap-3">{['Tu gasto en comida aumentó esta semana.','Puedes ahorrar más reduciendo compras pequeñas.','Los martes suelen ser tus días de menor gasto.','Estás avanzando bien en tu meta principal.'].map((t,i)=><article key={t} className="card rounded-3xl p-4"><b>{['🍽️','🪙','📅','🎯'][i]} {t}</b><p className="mt-1 text-xs text-[var(--muted)]">Consejo rápido para mejorar tu control sin sentirlo pesado.</p></article>)}</div><section className="card mt-5 rounded-[2rem] p-5"><h2 className="font-black">Distribución por categoría</h2><div className="mt-4 space-y-3">{Object.entries(byCat).map(([cat,total])=><div key={cat}><div className="mb-1 flex justify-between text-xs"><span>{cat}</span><b>{money(total,currency)}</b></div><div className="progress"><span style={{width:`${(total/max)*100}%`}} /></div></div>)}</div></section><section className="card mt-5 rounded-[2rem] p-5"><h2 className="font-black">Evolución semanal</h2><div className="mt-5 flex h-32 items-end gap-2">{monthlyEvolution.map((v,i)=><div key={i} className="flex flex-1 flex-col items-center gap-2"><span className="w-full rounded-t-xl bg-[var(--primary)] transition-all" style={{height:`${v}%`}}/><small className="text-[10px] text-[var(--muted)]">D{i+1}</small></div>)}</div></section></div>
+}

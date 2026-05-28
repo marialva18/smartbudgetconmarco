@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+:root {
+  --background: #eff6ff;
+  --foreground: #0f172a;
+  --card: rgba(255,255,255,.86);
+  --card-foreground: #172033;
+  --primary: #4f46e5;
+  --secondary: #06b6d4;
+  --muted: #64748b;
+  --border: rgba(15,23,42,.11);
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #0ea5e9;
+  --surface: #ffffff;
+  --shadow-card: 0 18px 40px rgba(15,23,42,.14);
+  --gradient-primary: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+}
+.dark {
+  --background: #07111f;
+  --foreground: #f8fafc;
+  --card: rgba(15,23,42,.82);
+  --card-foreground: #f8fafc;
+  --primary: #8b5cf6;
+  --secondary: #22d3ee;
+  --muted: #94a3b8;
+  --border: rgba(255,255,255,.12);
+  --success: #22c55e;
+  --warning: #fbbf24;
+  --danger: #fb7185;
+  --info: #38bdf8;
+  --surface: #0f172a;
+  --shadow-card: 0 22px 60px rgba(0,0,0,.38);
+  --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #22d3ee 100%);
+}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left, rgba(79,70,229,.25), transparent 32%),radial-gradient(circle at bottom right, rgba(6,182,212,.22), transparent 34%),var(--background);color:var(--foreground)}
+button,input,select,textarea{font:inherit} button{cursor:pointer} .app-scroll{scrollbar-width:none}.app-scroll::-webkit-scrollbar{display:none}
+.card{background:var(--card);color:var(--card-foreground);border:1px solid var(--border);box-shadow:var(--shadow-card);backdrop-filter:blur(18px)}
+.gradient-btn{background:var(--gradient-primary);color:white;box-shadow:0 12px 28px rgba(79,70,229,.28)}
+.soft-btn{background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--foreground);border:1px solid var(--border)}
+.progress{height:10px;border-radius:999px;background:color-mix(in srgb,var(--muted) 18%,transparent);overflow:hidden}.progress>span{display:block;height:100%;border-radius:inherit;background:var(--gradient-primary);transition:width .5s ease}.tap{transition:transform .15s ease,opacity .15s ease}.tap:active{transform:scale(.97)}
+.fade-in{animation:fade .36s ease both}@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.sheet{animation:sheet .24s ease both}@keyframes sheet{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.confetti-piece{position:absolute;width:7px;height:12px;border-radius:2px;animation:fall 1.2s ease-out forwards}@keyframes fall{to{transform:translateY(300px) rotate(460deg);opacity:0}}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
