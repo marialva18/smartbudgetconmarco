@@ -23,3 +23,24 @@ export function wait(ms: number) {
 export function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
+
+export function dateForDay(day: number, base = '2026-05') {
+  return `${base}-${String(day).padStart(2, '0')}`;
+}
+
+export function safeRead<T>(key: string, fallback: T): T {
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function safeWrite<T>(key: string, value: T) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // El prototipo sigue funcionando aunque el navegador bloquee localStorage.
+  }
+}
