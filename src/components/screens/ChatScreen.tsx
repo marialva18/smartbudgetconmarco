@@ -7,7 +7,7 @@ import { money, percent, wait } from '../../lib/utils';
 type Msg = { from: 'bot' | 'user'; text: string };
 type Props = { expenses: Expense[]; goals: Goal[]; currency: Currency; monthlyIncome: number };
 
-const suggestions = ['¿Cuánto puedo gastar hoy?', '¿Dónde estoy gastando más?', 'Ayúdame a ahorrar más', '¿Cómo voy con mis metas?'];
+const suggestions = ['¿Cuánto puedo gastar hoy?', '¿Dónde estoy gastando más?', '¿Qué dice mi calendario?', 'Ayúdame a ahorrar más', '¿Cómo voy con mis metas?'];
 
 export default function ChatScreen({ expenses, goals, currency, monthlyIncome }: Props) {
   const [messages, setMessages] = useState<Msg[]>([
@@ -25,11 +25,21 @@ export default function ChatScreen({ expenses, goals, currency, monthlyIncome }:
       return acc;
     }, {});
     const topCategory = Object.entries(byCategory).sort((a, b) => b[1] - a[1])[0] || ['Sin datos', 0];
+    const byDay = expenses.reduce<Record<string, number>>((acc, expense) => {
+      acc[expense.date] = (acc[expense.date] || 0) + expense.amount;
+      return acc;
+    }, {});
+    const topDay = Object.entries(byDay).sort((a, b) => b[1] - a[1])[0] || ['', 0];
+    const topDayExpenses = expenses.filter((expense) => expense.date === topDay[0]);
+    const topDayCategory = Object.entries(topDayExpenses.reduce<Record<string, number>>((acc, expense) => {
+      acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
+      return acc;
+    }, {})).sort((a, b) => b[1] - a[1])[0] || ['Sin datos', 0];
     const dailyBudget = 48;
     const canSpendToday = Math.max(0, dailyBudget - todayTotal);
     const mainGoal = [...goals].sort((a, b) => percent(b.saved, b.target) - percent(a.saved, a.target))[0];
     const saved = goals.reduce((sum, goal) => sum + goal.saved, 0);
-    return { total, todayTotal, byCategory, topCategory, dailyBudget, canSpendToday, mainGoal, saved };
+    return { total, todayTotal, byCategory, topCategory, topDay, topDayCategory, dailyBudget, canSpendToday, mainGoal, saved };
   }, [expenses, goals]);
 
   const reply = (question: string) => {
@@ -49,7 +59,8 @@ export default function ChatScreen({ expenses, goals, currency, monthlyIncome }:
       return `Tu meta con mejor avance es “${summary.mainGoal.name}” con ${percent(summary.mainGoal.saved, summary.mainGoal.target)}%. Llevas ${money(summary.mainGoal.saved, currency)} de ${money(summary.mainGoal.target, currency)}.`;
     }
     if (q.includes('calendario') || q.includes('día') || q.includes('dia')) {
-      return `El calendario se alimenta de los gastos guardados. Cuando registras un gasto con fecha, ese día cambia su intensidad y muestra el detalle de transacciones.`;
+      if (!summary.topDay[0]) return 'El calendario se alimenta de los gastos guardados. Cuando registres un gasto con fecha, ese día cambiará su intensidad.';
+      return `El día con mayor gasto registrado es ${summary.topDay[0]} con ${money(Number(summary.topDay[1]), currency)}. En ese día predominó ${summary.topDayCategory[0]} con ${money(Number(summary.topDayCategory[1]), currency)}. Puedes tocar ese día en el calendario para ver la gráfica por categoría.`;
     }
     return `Con los datos actuales llevas ${money(summary.total, currency)} registrados. La categoría más fuerte es ${summary.topCategory[0]}, y todavía puedes gastar ${money(summary.canSpendToday, currency)} hoy según el presupuesto diario.`;
   };
@@ -82,6 +93,14 @@ export default function ChatScreen({ expenses, goals, currency, monthlyIncome }:
         <div className="rounded-2xl border border-[var(--border)] p-3">
           <p className="text-[var(--muted)]">Top categoría</p>
           <b className="block truncate">{summary.topCategory[0]}</b>
+        </div>
+        <div className="rounded-2xl border border-[var(--border)] p-3">
+          <p className="text-[var(--muted)]">Día más alto</p>
+          <b className="block truncate">{summary.topDay[0] || 'Sin datos'}</b>
+        </div>
+        <div className="rounded-2xl border border-[var(--border)] p-3">
+          <p className="text-[var(--muted)]">Categoría de ese día</p>
+          <b className="block truncate">{summary.topDayCategory[0]}</b>
         </div>
       </section>
 

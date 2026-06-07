@@ -18,6 +18,19 @@ export default function CalendarScreen({ expenses, currency, selectedDay, onSele
   const selectedExpenses = expensesForDay(selectedDay);
   const selectedTotal = totalFor(selectedDay);
 
+  const categoryTotals = categories
+    .map((category) => ({
+      ...category,
+      total: selectedExpenses
+        .filter((expense) => expense.category === category.name)
+        .reduce((sum, expense) => sum + expense.amount, 0),
+      count: selectedExpenses.filter((expense) => expense.category === category.name).length
+    }))
+    .filter((category) => category.total > 0)
+    .sort((a, b) => b.total - a.total);
+
+  const topCategory = categoryTotals[0];
+
   const level = (value: number) => {
     if (value === 0) return 'bg-transparent';
     if (value < dailyBudget * 0.5) return 'bg-[color-mix(in_srgb,var(--success)_25%,transparent)]';
@@ -25,8 +38,6 @@ export default function CalendarScreen({ expenses, currency, selectedDay, onSele
     if (value < dailyBudget * 1.5) return 'bg-[color-mix(in_srgb,var(--warning)_35%,transparent)]';
     return 'bg-[color-mix(in_srgb,var(--danger)_40%,transparent)]';
   };
-
-  const groupedCategories = categories.filter((category) => selectedExpenses.some((expense) => expense.category === category.name));
 
   return (
     <div className="h-full app-scroll overflow-y-auto px-5 pb-28 pt-8 fade-in">
@@ -86,9 +97,44 @@ export default function CalendarScreen({ expenses, currency, selectedDay, onSele
         <div className="mt-3 progress"><span style={{ width: `${Math.min(100, (selectedTotal / dailyBudget) * 100)}%` }} /></div>
         <p className="mt-2 text-xs text-[var(--muted)]">Presupuesto diario: {money(dailyBudget, currency)}. {selectedTotal > dailyBudget ? 'Superaste lo previsto para este día.' : 'Vas dentro de lo recomendado.'}</p>
 
-        {groupedCategories.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {groupedCategories.map((category) => <span key={category.name} className="rounded-full px-3 py-2 text-xs soft-btn">{category.icon} {category.name}</span>)}
+        <div className="mt-5 rounded-[1.6rem] border border-[var(--border)] p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Gráfica por categoría</p>
+              <h3 className="truncate text-base font-black">Distribución del día</h3>
+            </div>
+            {topCategory && <span className="shrink-0 rounded-full px-3 py-1 text-xs font-bold soft-btn">Top: {topCategory.icon} {topCategory.name}</span>}
+          </div>
+
+          {categoryTotals.length > 0 ? (
+            <div className="mt-4 space-y-3">
+              {categoryTotals.map((category) => {
+                const width = selectedTotal ? Math.max(8, Math.round((category.total / selectedTotal) * 100)) : 0;
+                return (
+                  <div key={category.name}>
+                    <div className="mb-1 flex items-center justify-between gap-3 text-xs">
+                      <span className="min-w-0 truncate font-bold">{category.icon} {category.name}</span>
+                      <span className="shrink-0 text-[var(--muted)]">{money(category.total, currency)} · {width}%</span>
+                    </div>
+                    <div className="h-3 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--muted)_12%,transparent)]">
+                      <span className="block h-full rounded-full bg-[var(--primary)] transition-all duration-500" style={{ width: `${width}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-4 rounded-2xl border border-dashed border-[var(--border)] p-4 text-center text-sm text-[var(--muted)]">Cuando registres gastos en este día, aparecerá una gráfica por categoría.</p>
+          )}
+        </div>
+
+        {categoryTotals.length > 0 && (
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {categoryTotals.slice(0, 4).map((category) => <div key={category.name} className="rounded-2xl border border-[var(--border)] p-3 text-xs">
+              <p className="truncate text-[var(--muted)]">{category.icon} {category.name}</p>
+              <b className="block truncate text-sm">{money(category.total, currency)}</b>
+              <span className="text-[var(--muted)]">{category.count} movimiento{category.count === 1 ? '' : 's'}</span>
+            </div>)}
           </div>
         )}
 
